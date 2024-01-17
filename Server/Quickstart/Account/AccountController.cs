@@ -35,13 +35,15 @@ namespace IdentityServerHost.Quickstart.UI
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
 		private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
 
-		public AccountController(
+        public AccountController(
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
             IEventService events,
-            SignInManager<IdentityUser> signInManager)
+            SignInManager<IdentityUser> signInManager,
+            UserManager<IdentityUser> userManager)
         {
 
             _interaction = interaction;
@@ -49,7 +51,54 @@ namespace IdentityServerHost.Quickstart.UI
             _schemeProvider = schemeProvider;
             _events = events;
 			_signInManager = signInManager;
-		}
+            _userManager = userManager;
+        }
+
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            var vm = new SignupViewModel(); 
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(SignupViewModel model)
+        {
+            
+            if (ModelState.IsValid)
+            {
+                
+                var user = new IdentityUser
+                {
+                    UserName = model.Username,
+                    Email = model.Email
+                    
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+
+                    
+                    return RedirectToAction("Index", "Home");
+                }
+
+                
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            
+            return View(model);
+        }
+
 
         /// <summary>
         /// Entry point into the login workflow
@@ -210,6 +259,8 @@ namespace IdentityServerHost.Quickstart.UI
             if (User?.Identity.IsAuthenticated == true)
             {
                 // delete local authentication cookie
+                
+                await _signInManager.SignOutAsync();
                 await HttpContext.SignOutAsync();
 
                 // raise the logout event
