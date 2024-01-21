@@ -2,8 +2,8 @@
 
 namespace Server
 {
-	public class Config
-	{
+    public class Config
+    {
         public static IEnumerable<IdentityResource> IdentityResources =>
             new[]
             {
@@ -54,7 +54,10 @@ namespace Server
                     AllowedScopes = { "openid", "profile", "CoffeeAPI.read" },
                     RequirePkce = true,
                     RequireConsent = true,
-                    AllowPlainTextPkce = false
+                    AllowPlainTextPkce = false,
+                    RequireClientSecret = false,
+                    AllowedCorsOrigins={ "https://localhost:4200"}
+
                 },
             };
     }
