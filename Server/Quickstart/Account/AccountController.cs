@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace IdentityServerHost.Quickstart.UI
@@ -82,10 +83,10 @@ namespace IdentityServerHost.Quickstart.UI
                 if (result.Succeeded)
                 {
                     
-                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    //await _signInManager.SignInAsync(user, isPersistent: false);
 
                     
-                    return RedirectToAction("Index", "Home");
+                    return Redirect("https://localhost:4200/");
                 }
 
                 
@@ -166,6 +167,16 @@ namespace IdentityServerHost.Quickstart.UI
                     if (userLogin == Microsoft.AspNetCore.Identity.SignInResult.Success)
                     {
                         await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
+
+                        var customClaims = new List<Claim>
+                        {
+                            new Claim("user-id", user.Id),
+                            new Claim("user-name", user.UserName),
+                            new Claim("user-email", user.Email)
+                        };
+
+                        // Add the custom claims to the user
+                        await _userManager.AddClaimsAsync(user, customClaims);
 
                         // only set explicit expiration here if user chooses "remember me". 
                         // otherwise we rely upon expiration configured in cookie middleware.
@@ -279,7 +290,7 @@ namespace IdentityServerHost.Quickstart.UI
                 return SignOut(new AuthenticationProperties { RedirectUri = url }, vm.ExternalAuthenticationScheme);
             }
 
-            return View("LoggedOut", vm);
+            return Redirect("https://localhost:4200/");
         }
 
         [HttpGet]
