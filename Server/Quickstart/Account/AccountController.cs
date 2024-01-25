@@ -86,7 +86,7 @@ namespace IdentityServerHost.Quickstart.UI
                     //await _signInManager.SignInAsync(user, isPersistent: false);
 
                     
-                    return Redirect("https://localhost:4200/");
+                    return RedirectToAction("Login", "Account");
                 }
 
                 
@@ -290,7 +290,8 @@ namespace IdentityServerHost.Quickstart.UI
                 return SignOut(new AuthenticationProperties { RedirectUri = url }, vm.ExternalAuthenticationScheme);
             }
 
-            return Redirect("https://localhost:4200/");
+            string refererUrl = HttpContext.Request.Headers["Referer"];
+            return SignOut(new AuthenticationProperties { RedirectUri = refererUrl }, vm.ExternalAuthenticationScheme);
         }
 
         [HttpGet]
